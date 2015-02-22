@@ -1,5 +1,7 @@
 
 - Problem Statement
+
+
 In this investigation, we used data recorded from four types of body sensors during body building exercises to predict or classify new exercises using a subset of predictors from this data, i.e. to predict the  classe  variable. After applying various data cleanup and preprossesing techniques, a training model was built to predict 20 observations from a test dataset. In this document you will find the methods and results we obtained from this investigation.
 
 
@@ -18,6 +20,8 @@ set.seed(12345)
 
 
 - Loading raw data
+
+
 The original researchers provided two data sets, one for training and a second one for testing. We downloaded the data sets and loaded the files using the  read.csv  function built into R.
 
 raw_training_data <- read.csv("data//pml-training.csv")
@@ -28,6 +32,8 @@ The  raw_training_data  dataset contains  r dim(raw_training_data)[1]  records a
 
 
 - Data Cleanup
+
+
 Before generating a training fitness function or model to be able to classify the human motions using these sensors I decided to inspect the raw datasets to determine which variables were useful to general such model and which were not. 
 
 I started by peforming a quick inspection of the datasets by generating a summary report using  summary(raw_training_data) . This report revealed that many variables has division by zero errors ( #DIV/0! ), tables with mostly  NA  values, and other strange output such as the following:
@@ -63,6 +69,8 @@ After dropping these columns, the resulting dataset had a total of  r dim(filter
 
 
 - Preprocessing using near-zero variance analysis
+
+
 The resulting training dataset still contains quite a few variables, thus it would be useful to identify other variables that might not be useful for building our fitness model. Therefore, I decided to perform a zero and near-zero-variance analysis on  filtered_training . The usefulness of this analysis is that we may identify variables that might break our model by providing a constant value across all observations (records). Here is the output of the analysis:
 
 nearZeroVar(filtered_training,saveMetrics=TRUE)
@@ -77,6 +85,8 @@ After dropping the near-zero variance columns, the resulting training dataset  f
 
 
 - Preprocessing highly correlated predictors
+
+
 The  filtered_training  dataset still contains  r dim(filtered_training)[2]  variables/predictors, which is still not a manageable amount to perform exploratory data analysis. If there was a possibility to trim the dataset even more it would make our training process more scalable. I decided to perform a correlation analysis between the  r dim(filtered_training)[2] - 1  predictors of  filtered_training  (the  classe  column which is our outcome was omitted). I approached this by generating a scatter plot matrix visualization to investigate if there were predictors that were correlated, but the rendering was slow. As an alternative, I decided to perform a correlation analysis using  findCorrelation  function. To accomplish this I needed to build a correlation matrix based on the  filtered_training  dataset, and that required the filtering of categorical/factor variables from the dataset as well. A quick in
 
 filtered_training_no_class <- filtered_training[-c(dim(filtered_training))]
@@ -93,11 +103,15 @@ for (i in 1:length(resulting_predictors)){
 
 
 - Preprocess Testing Dataset
+
+
 In order to ensure that the predictions follow the training model that I will generate later on, I processed the testing dataset ( raw_validation_data ) using the same process used for the training data, i.e.  raw_training_data .
 
 
 
 - Build training fitness model
+
+
 In order to be able to test our model, we partitioned the  filtered_training  dataset into a  training  and  probe  datasets. We used a simple partitioning mechanism using sampling without substitution, generating a training dataset that had 75% of the observations ( r dim(training)[1]  observations) of the  filtered_training  dataset. The  probe  dataset has 25% of the  filtered_training  dataset observations ( r dim(probe)[1]  observations).
 
 filtered_partition = createDataPartition(filtered_training$classe, p=0.75, list=F)
@@ -125,6 +139,8 @@ E    0    0    4    5 2697 0.0033259424
 
 
 - Testing fitness model
+
+
 I tested the fitness model function  classeFit  on the  probe  dataset as such:
 pred <- predict(classeFit,probe)
 
@@ -139,4 +155,6 @@ As it can be seen, the fitness model only misclassified 7 out of  r dim(probe)[1
 
 
 - Results
+
+
 After applying the fitness model function to the testing dataset  pml-testing.csv  (after filtering and preprocessing) the following predictions were obtained for the 20 test cases:  B A B A A E D B A A B C B A E E A B B B .
